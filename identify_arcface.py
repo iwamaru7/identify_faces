@@ -6,8 +6,10 @@ import numpy as np
 VIDEO_PATH_LEARN = 'movie/boy03.mp4'
 VIDEO_PATH_IDENTIFY = 'movie/movie01.mp4'
 # --- フレームスキップ数の定義 ---
-SKIP_FRAMES_LEARN = 3  # 学習用動画でスキップするフレーム数
-SKIP_FRAMES_IDENTIFY = 3  # 識別用動画でスキップするフレーム数
+SKIP_FRAMES_LEARN = 5  # 学習用動画でスキップするフレーム数
+SKIP_FRAMES_IDENTIFY = 5  # 識別用動画でスキップするフレーム数
+# --- フレーム数上限 ---
+FRAMES_COUNT_LEARN = 30  # 学習用動画で処理するフレーム数上限
 
 # --- InsightFaceの初期化（ArcFace+ResNet） ---
 #app = FaceAnalysis(name='antelopev2', providers=['CPUExecutionProvider'])
@@ -20,6 +22,7 @@ def extract_features(video_path, skip_frames=0):
     video = cv2.VideoCapture(video_path)
     features = []
     frame_count = 0
+    learn_count = 0
     while True:
         ret, frame = video.read()
         if not ret:
@@ -27,6 +30,9 @@ def extract_features(video_path, skip_frames=0):
         if skip_frames > 0 and frame_count % (skip_frames + 1) != 0:
             frame_count += 1
             continue
+        if (learn_count >= FRAMES_COUNT_LEARN):
+            break
+
         # 顔検出
         faces = app.get(frame)
         # 顔検出
@@ -40,6 +46,8 @@ def extract_features(video_path, skip_frames=0):
         # ウィンドウサイズを1366x768にリサイズ
         disp_frame = cv2.resize(frame, (1366, 768))
         cv2.imshow('Learn (boy01)', disp_frame)
+
+        learn_count += 1
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()
