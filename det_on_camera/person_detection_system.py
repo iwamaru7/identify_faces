@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
 import os
+import time
 from datetime import datetime
 import glob
 import json
 from insightface.app import FaceAnalysis
 from PIL import Image, ImageDraw, ImageFont
+from voice_announcer import VoiceAnnouncer
 
 # 顔画像保存時のマージン設定（バウンディングボックスからの拡張率）
 FACE_MARGIN_RATIO = 0.25  # マージン(%)
@@ -20,6 +22,13 @@ class PersonDetectionSystem:
         self.person_names = {}  # {person_id: name}
         self.next_id = 1
         self.person_info_file = os.path.join(self.training_data_dir, "person_info.json")
+        
+        # 音声読み上げシステムの初期化
+        self.voice_announcer = VoiceAnnouncer(logger)
+        
+        # 最後に挨拶した人物を記録（重複防止用）
+        self.last_greeted_persons = {}  # {person_id: last_greeted_time}
+        self.greeting_cooldown = 30  # 30秒間は同じ人に再度挨拶しない
 
         # InsightFaceの初期化
         self.app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
@@ -89,6 +98,35 @@ class PersonDetectionSystem:
                 self.logger.error(f"人物名情報の読み込みに失敗しました: {e}")
         else:
             self.logger.warning(f"person_info.jsonが見つかりません: {self.person_info_file}")
+
+    def should_greet_person(self, person_id):
+        """指定した人物に挨拶すべきかチェックする"""
+        current_time = time.time()
+        
+        if person_id not in self.last_greeted_persons:
+            return True
+        
+        time_since_last_greeting = current_time - self.last_greeted_persons[person_id]
+        return time_since_last_greeting >= self.greeting_cooldown
+    
+    def greet_person(self, person_id, person_name=None):
+        """人物に音声で挨拶する"""
+        current_time = time.time()
+        
+        if self.should_greet_person(person_id):
+            # 挨拶を実行
+            if person_name:
+                self.voice_announcer.announce_person(person_name)
+                self.logger.info(f"音声挨拶: {person_name}さん、こんにちは")
+            else:
+                pass
+                # self.voice_announcer.announce_person_with_id(person_id)
+                # self.logger.info(f"音声挨拶: ID {person_id}の方、こんにちは")
+            
+            # 挨拶時刻を記録
+            self.last_greeted_persons[person_id] = current_time
+        else:
+            self.logger.debug(f"ID {person_id}: クールダウン中のため挨拶をスキップ")
 
     def get_person_display_name(self, person_id):
         """IDに対応する表示名を取得（名前があれば名前、なければIDのみ）"""
@@ -296,6 +334,10 @@ class PersonDetectionSystem:
                     # 顔画像を保存（バウンディングボックス描画前の元フレームから）
                     self.save_detected_face(frame, bbox, matched_id)
                     
+                    # 音声で挨拶（名前があれば名前で、なければIDで）
+                    person_name = self.person_names.get(matched_id)
+                    self.greet_person(matched_id, person_name)
+                    
                     # バウンディングボックスとIDを画像に追加
                     x1, y1, x2, y2 = bbox.astype(int)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -390,4 +432,8 @@ class PersonDetectionSystem:
             # リソースを解放
             cap.release()
             cv2.destroyAllWindows()
+            
+            # 音声システムを停止
+            self.voice_announcer.stop()
+            
             self.logger.info("カメラリソースを解放しました")

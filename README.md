@@ -7,6 +7,7 @@
 ## 主な機能
 
 - **リアルタイム顔検出・認識**: カメラからの映像で人物を自動識別
+- **音声読み上げ機能**: 人物識別時に名前での音声挨拶
 - **自動学習データ更新**: 検出した顔を自動的に学習データに追加
 - **GUI管理ツール**: 検出された顔画像の整理・統合・削除
 - **人物名前登録**: IDに対応する名前の管理
@@ -21,6 +22,7 @@
 - numpy
 - tkinter (GUI用)
 - Pillow (日本語表示用)
+- pyttsx3 (音声読み上げ用)
 
 ### インストール手順
 
@@ -48,8 +50,11 @@ pip install opencv-python numpy insightface onnxruntime
 # GUI・画像処理用
 pip install pillow
 
+# 音声読み上げ用
+pip install pyttsx3
+
 # または一括インストール
-pip install opencv-python numpy insightface onnxruntime pillow
+pip install opencv-python numpy insightface onnxruntime pillow pyttsx3
 ```
 
 #### 3. InsightFaceモデルの準備
@@ -92,6 +97,10 @@ python det_on_camera.py
 **操作方法:**
 - カメラ映像で顔を自動検出・認識
 - 新しい人物は自動的に新規IDを採番
+- 人物識別時に時間帯に応じた音声挨拶
+  - 5:00-10:59: 「〇〇さん、おはようございます」
+  - 11:00-17:59: 「〇〇さん、こんにちは」  
+  - 18:00-4:59: 「〇〇さん、こんばんは」
 - `q`キーで終了
 
 ### 2. GUI管理ツール
@@ -116,12 +125,27 @@ python sort_out_person.py
 python identify_arcface.py
 ```
 
+### 4. 音声機能のテスト
+
+```sh
+# 音声読み上げテスト
+cd det_on_camera
+python test_voice.py
+```
+
+**テスト内容:**
+- 名前付きの挨拶: 「田中さん、(時間帯に応じた挨拶)」
+- IDのみの挨拶: 「ID 123の方、(時間帯に応じた挨拶)」
+- 時間帯別挨拶のテスト（朝・昼・夜）
+- カスタムメッセージの読み上げ
+
 ## 詳細な使用手順
 
 ### 初回セットアップ
 1. 仮想環境の作成・アクティベート
 2. 必要ライブラリのインストール
 3. `det_on_camera.py`を実行してInsightFaceモデルをダウンロード
+4. 音声機能のテスト: `python test_voice.py`（オプション）
 
 ### 日常的な使用
 1. `det_on_camera.py`でカメラ検出を実行
@@ -138,6 +162,16 @@ python identify_arcface.py
 - 類似度閾値: 0.5（デフォルト）
 - バウンディングボックスマージン: 25%（デフォルト）
 - 検出サイズ: 640x640
+
+### 音声読み上げ設定
+- 音声エンジン: pyttsx3（Windows SAPI）
+- 日本語音声: Microsoft Haruka Desktop（自動選択）
+- 音声速度: 150（やや速め）
+- 挨拶クールダウン: 30秒（同じ人への連続挨拶を防止）
+- 時間帯別挨拶:
+  - 5:00-10:59: 「おはようございます」
+  - 11:00-17:59: 「こんにちは」
+  - 18:00-4:59: 「こんばんは」
 
 ### データ管理
 - 学習データ: `training_data/person_{ID}.npy`
@@ -173,6 +207,16 @@ python identify_arcface.py
 - 学習データが大きすぎる場合は古いデータを削除
 - RAMを増設
 - バッチサイズを小さくする
+
+#### 5. 音声読み上げが動作しない
+```
+音声エンジンの初期化に失敗しました
+```
+**解決策:**
+- pyttsx3ライブラリがインストールされているか確認: `pip install pyttsx3`
+- Windowsの音声合成機能が有効になっているか確認
+- 他のアプリケーションがオーディオデバイスを占有していないか確認
+- オーディオドライバーを最新版に更新
 
 ### ログの確認
 - システムのログはコンソールに出力されます
