@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Camera Face Detection Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\det_on_camera\\det_on_camera.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "args": []
+        },
+        {
+            "name": "ArcFace Identification Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\identify_arcface.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "args": []
+        },
+        {
+            "name": "Current File Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "args": []
+        },
+        {
+            "name": "Camera Face Detection (Breakpoint at Start)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\det_on_camera\\det_on_camera.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "justMyCode": false,
+            "stopOnEntry": true,
+            "args": []
+        },
+        {
+            "name": "Sort Out Person Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}\\det_on_camera\\sort_out_person.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "justMyCode": false,
+            "stopOnEntry": false,
+            "args": []
+        }
+    ]
+}
